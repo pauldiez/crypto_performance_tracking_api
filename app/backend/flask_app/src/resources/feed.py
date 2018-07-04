@@ -15,7 +15,7 @@ class FeedCollectionResource(Resource):
     # @auth.login_required
     def get(self, crypto_symbol):
 
-        # convert to uppercase
+        # convert crypto to uppercase
         crypto_symbol = crypto_symbol.upper()
 
         if crypto_symbol not in FeedModel.CRYPTO_SYMBOLS:

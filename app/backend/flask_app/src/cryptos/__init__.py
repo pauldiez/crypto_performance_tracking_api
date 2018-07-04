@@ -9,6 +9,7 @@ class CryptoFactory(object):
         try:
             # set module name to where we want to import our crypto classes
             module_name = crypto_symbol.lower()
+
             # set crypto class name
             crypto_class_name = crypto_symbol.upper()
 
@@ -22,12 +23,12 @@ class CryptoFactory(object):
             crypto_class_instance = crypto_class(*args, **kwargs)
 
         except (AttributeError, ModuleNotFoundError):
-            raise ImportError('{} is not part of our crypto platform!'.format(crypto_symbol))
+            raise ImportError('%s is not part of our crypto platform!' % crypto_symbol)
         else:
             if not issubclass(crypto_class, BaseCrypto):
                 raise ImportError(
-                    "We currently don't have {}, but you are welcome to send in the request for it!".format(
-                        crypto_class))
+                    "We currently don't have %s, but you are welcome to send in the request for it!" %
+                    crypto_class)
 
         # return crypto class
         return crypto_class_instance
