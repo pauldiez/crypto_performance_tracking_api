@@ -1,4 +1,4 @@
-class BaseCrypto():
+class BaseCrypto(object):
 
     @staticmethod
     def fetch_live_data(results):
