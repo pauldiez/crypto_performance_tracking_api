@@ -3,7 +3,6 @@ from flask_mail import Message
 from src.app import celery, db, Config
 from src.library.email import MailErrorException
 from src.library.email import send_email
-from src.emails import generate_hello_user_email
 from src.models import FeedModel
 from src.cryptos import CryptoFactory
 
@@ -12,6 +11,13 @@ logger = get_task_logger(__name__)
 
 @celery.task(bind=True, queue='high_priority', default_retry_delay=300, max_retries=3)
 def fetch_and_process_crypto_data(self, crypto_symbol):
+    """
+    Fetch and process crypto data
+
+    :param self:
+    :param crypto_symbol:
+    :return:
+    """
     # instantiate crypto class
     crypto_object = CryptoFactory.generate_object(crypto_symbol)
 

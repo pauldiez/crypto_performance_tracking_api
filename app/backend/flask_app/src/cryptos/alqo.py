@@ -46,7 +46,7 @@ class ALQO(BaseCrypto):
         # load request data into feed schema
         feed_schema = FeedSchema().load(data, db.session)
 
-        # check for errors - if errors notify admin
+        # check for errors
         if feed_schema.errors:
             message = ",".join(feed_schema.errors)
             logging.error(message)
@@ -74,7 +74,7 @@ class ALQO(BaseCrypto):
         # load request data into feed schema
         feed_schema = FeedSchema().load(data, db.session)
 
-        # check for errors - if errors notify admin
+        # check for errors
         if feed_schema.errors:
             message = ",".join(feed_schema.errors)
             logging.error(message)
