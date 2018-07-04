@@ -1,0 +1,113 @@
+version: "3.0"
+services:
+  web_gateway:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    image: nginx:v1
+    command: /bin/bash -c './wait-for.sh web:${UWSGI_SOCKET_PORT} -t 30 -- envsubst $$NGINX_CONFIG_VARS < /etc/nginx/conf.template/default-site.com.template.conf > /etc/nginx/conf.d/default.conf && nginx -g "daemon off;"'
+    #command: /bin/bash -c './wait-for.sh web:${UWSGI_SOCKET_PORT} -t 30 -- envsubst $$NGINX_CONFIG_VARS < /etc/nginx/conf.template/default-site.com.template.conf > /etc/nginx/conf.d/default.conf && cat /etc/nginx/conf.d/default.conf'
+    container_name: web_gateway
+    volumes:
+     - ./docker/nginx/configs/nginx.conf:/etc/nginx/nginx.conf
+     - ./docker/nginx/configs/conf.d/default-site.com.template.conf:/etc/nginx/conf.template/default-site.com.template.conf
+     - ./scripts/wait-for.sh:/wait-for.sh
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    restart: always
+    env_file:
+      - ${COMPOSER_ENV_VAR_FILE}
+      - ${COMPOSER_ENV_VAR_SECRETS_FILE}
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/python_uwsgi/Dockerfile
+    image: python_web:v1
+    container_name: web
+    command: /bin/bash -c './wait-for.sh ${POSTGRES_HOST}:${POSTGRES_PORT} -t 30 -- envsubst < /etc/uwsgi/uwsgi.template.ini > /etc/uwsgi/uwsgi.ini && uwsgi /etc/uwsgi/uwsgi.ini'
+    volumes:
+     - ./app:/app
+     - ./scripts/wait-for.sh:/wait-for.sh
+     - ./docker/python_uwsgi/uwsgi_config/uwsgi.template.ini:/etc/uwsgi/uwsgi.template.ini
+    ports:
+      - "${UWSGI_SOCKET_PORT}:${UWSGI_SOCKET_PORT}"
+      - "${APP_HOST_PORT}:${APP_HOST_PORT}"
+    restart: always
+    env_file:
+      - ${COMPOSER_ENV_VAR_FILE}
+      - ${COMPOSER_ENV_VAR_SECRETS_FILE}
+
+  task_worker:
+    image: python_web:v1
+    container_name: task_worker
+    working_dir: /app/backend/flask_app/
+    entrypoint: "/celery_entrypoint.sh"
+    command: sh -c '/./wait-for.sh ${POSTGRES_HOST}:${POSTGRES_PORT} -t 30 -- /./wait-for.sh ${REDIS_HOST}:${REDIS_PORT} -t 30 -- celery -A run_task_worker.celery worker --uid=82 --gid=82 -c 4 -l ${CELERY_LOGGER_LEVEL}'
+    restart: always
+    volumes:
+      - ./app:/app
+      - ./data/celery/:/data/celery
+      - ./docker/python_uwsgi/celery_entrypoint.sh:/celery_entrypoint.sh
+      - ./scripts/wait-for.sh:/wait-for.sh
+    env_file:
+      - ${COMPOSER_ENV_VAR_FILE}
+      - ${COMPOSER_ENV_VAR_SECRETS_FILE}
+
+  task_scheduler:
+    image: python_web:v1
+    container_name: task_scheduler
+    working_dir: /app/backend/flask_app/
+    entrypoint: "/celery_entrypoint.sh"
+    command: sh -c '/./wait-for.sh ${POSTGRES_HOST}:${POSTGRES_PORT} -t 30 -- /./wait-for.sh ${REDIS_HOST}:${REDIS_PORT} -t 30 -- celery -A run_task_scheduled_worker.celery beat --uid=82 --gid=82 --pidfile=${CELERY_PID_FILE} -s ${CELERY_BEAT_SCHEDULE} -l ${CELERY_LOGGER_LEVEL}'
+    restart: always
+    volumes:
+      - ./app:/app
+      - ./data/celery/:/data/celery
+      - ./scripts/wait-for.sh:/wait-for.sh
+      - ./docker/python_uwsgi/celery_entrypoint.sh:/celery_entrypoint.sh
+    env_file:
+      - ${COMPOSER_ENV_VAR_FILE}
+      - ${COMPOSER_ENV_VAR_SECRETS_FILE}
+
+#  task_monitor:
+#    image: python_web:v1
+#    container_name: task_monitor
+#    working_dir: /app/backend/flask_app/
+#    command: sh -c '/./wait-for.sh ${POSTGRES_HOST}:${POSTGRES_PORT} -t 30 -- /./wait-for.sh ${REDIS_HOST}:${REDIS_PORT} -t 30 -- flower -A run_task_worker.celery --port=${CELERY_MONITOR_PORT}'
+#    #restart: always
+#    volumes:
+#      - ./app:/app
+#      - ./data/flower/:/data
+#    ports:
+#      - "${CELERY_MONITOR_PORT}:${CELERY_MONITOR_PORT}"
+#    env_file:
+#      - ${COMPOSER_ENV_VAR_FILE}
+#      - ${COMPOSER_ENV_VAR_SECRETS_FILE}
+
+#  db:
+#    build:
+#      context: .
+#      dockerfile: ./docker/postgres/Dockerfile
+#    image: postgres_db:v1
+#    hostname: postgres
+#    container_name: db
+#    ports:
+#      - "${POSTGRES_HOST}:${POSTGRES_PORT}"
+#    volumes:
+#      - ./data/postgres:/var/lib/postgresql/data/
+#    restart: always
+#    env_file:
+#      - ${COMPOSER_ENV_VAR_FILE}
+#      - ${COMPOSER_ENV_VAR_SECRETS_FILE}
+
+#  cache:
+#    build:
+#      context: .
+#      dockerfile: ./docker/redis/Dockerfile
+#    image: redis_cache:v1
+#    container_name: cache
+#    ports:
+#      - "${REDIS_HOST}:${REDIS_PORT}"
+#    restart: always
+#    volumes:
+#      - ./data/redis/:/data

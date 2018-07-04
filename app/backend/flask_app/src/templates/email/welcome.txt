@@ -1,0 +1,11 @@
+Dearest {{ user_data['name'] }},
+\r\n\r\n
+Welcome to {{ app_name }}.
+\r\n\r\n
+Click or copy and paste the link below to confirm your account:
+\r\n
+{{ url_for('api.user', user_id=user_data['id'], _external=True) }}
+\r\n\r\n
+Regards,
+\r\n
+The {{ app_name }} admin
