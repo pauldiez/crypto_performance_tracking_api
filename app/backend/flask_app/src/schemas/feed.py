@@ -1,4 +1,4 @@
-from flask_marshmallow import exceptions
+-from flask_marshmallow import exceptions
 from src.models import FeedModel
 from src.app import mm
 
