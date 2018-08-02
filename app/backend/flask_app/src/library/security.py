@@ -1,9 +1,11 @@
 from passlib.context import CryptContext
 from src.config import Config
 
-# passlib library settings override
-# import the CryptContext class, used to handle all hashing...
-# docs - https://passlib.readthedocs.io/en/stable/lib/passlib.apps.html#custom-applications
+"""passlib library settings override
+Import the CryptContext class, used to handle all hashing.
+https://passlib.readthedocs.io/en/stable/lib/passlib.apps.html#custom-applications
+"""
+
 pwd_context = CryptContext(
     # Replace this list with the hash(es) you wish to support.
     # options ["bcrypt", "pbkdf2_sha256", "des_crypt"]

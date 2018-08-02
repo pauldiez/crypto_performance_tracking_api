@@ -1,14 +1,17 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 
-class BaseCrypto(object):
+class AbstractBaseCrypto(object):
+    """Abstract Base Crypto class"""
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def fetch_live_data(results):
+    def fetch_live_data(cls, results):
+        """Fetch live crypto currency data"""
         raise Exception("%s, %s needs to implemented" % (__class__, __name__))
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def calculate_total(results):
+    def calculate_totals(cls, results):
+        """Calculate totals"""
         raise Exception("%s, %s needs to implemented" % (__class__, __name__))

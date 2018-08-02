@@ -4,12 +4,12 @@ from email.message import EmailMessage
 import email.utils
 
 
-# Provide a class to allow SSL (Not TLS) connection for mail handlers by overloading the emit() method
+# Provide a class to allow SSL (Not TLS) connection for mail handlers by
+# overloading the emit() method.
 class SSLSMTPHandler(SMTPHandler):
     def emit(self, record):
-        """
-        Emit a record.
-        """
+        """Emit a record."""
+
         try:
             port = self.mailport
             if not port:
@@ -23,7 +23,8 @@ class SSLSMTPHandler(SMTPHandler):
             msg.set_content(self.format(record))
             if self.username:
                 smtp.login(self.username, self.password)
-            smtp.send_message(msg, from_addr=self.fromaddr, to_addrs=self.toaddrs)
+            smtp.send_message(msg, from_addr=self.fromaddr,
+                              to_addrs=self.toaddrs)
             smtp.quit()
         except (KeyboardInterrupt, SystemExit):
             raise

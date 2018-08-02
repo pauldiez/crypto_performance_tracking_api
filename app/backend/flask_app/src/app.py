@@ -8,36 +8,33 @@ from flask_httpauth import HTTPBasicAuth
 from src.library.celery import CeleryWrapper
 from src.config import Config, CeleryConfig
 
-# initiate Celery
+# setup our task manger
 celery = CeleryWrapper(__name__,
                        backend=CeleryConfig.backend_url,
                        broker=CeleryConfig.broker_url,
                        include=['src.tasks'])
-# set SQLAlchemy
+
+# set our database ORM object
 db = SQLAlchemy()
 
-# set Marshmallow
-mm = Marshmallow()
+# set our data validation object
+mm = Marshmallow()  # used for validation
 
-# set Mail
+# set our email object
 mail = Mail()
 
-# set Api
+# set our api object that will help define our endpoints
 api = Api()
 
+# set our auth object that will be used to project our
+# endpoints from the public
 auth = HTTPBasicAuth()
 
 def create_app(config_class=Config):
-    """
-        Create an application factory - a clean way to create app instances and avoid package/import errors
-        See http://flask.pocoo.org/docs/0.12/patterns/appfactories/
+    """Setup our app configurations and initialize our libraries and services.
     """
 
-    #
-    # create app and initiate app services
-    #
-
-    # initiate Flask
+    # initiate our framework use to create this app
     app = Flask(__name__)
 
     # set configs
@@ -62,7 +59,7 @@ def create_app(config_class=Config):
     # setup api routes
     import src.routes
 
-    # initiate init
+    # initiate our app
     api.init_app(app)
 
     return app

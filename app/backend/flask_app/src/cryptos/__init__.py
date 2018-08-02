@@ -1,34 +1,32 @@
-from .alqo import BaseCrypto
+from .alqo import AbstractBaseCrypto
 import importlib
 
 
-class CryptoFactory(object):
+class CryptoFactoryMethod(object):
+    """A factory method pattern class to used to instantiate our
+    crypto objects"""
 
-    @staticmethod
-    def generate_object(crypto_symbol, *args, **kwargs):
+    @classmethod
+    def generate_object(cls, crypto_symbol, *args, **kwargs):
+        """Return crypto object based on crypto symbol passed in"""
+
         try:
-            # set module name to where we want to import our crypto classes
+            # Determine correct crypto module to import
             module_name = crypto_symbol.lower()
-
-            # set crypto class name
-            crypto_class_name = crypto_symbol.upper()
-
-            # set crypto module path
-            crypto_module = importlib.import_module("." + module_name, package='src.cryptos')
-
-            # get crypto class
-            crypto_class = getattr(crypto_module, crypto_class_name)
-
-            # instantiate crypto class
+            crypto_module = importlib.import_module("." + module_name,
+                                                    package='src.cryptos')
+            crypto_class = getattr(crypto_module, crypto_symbol.upper())
             crypto_class_instance = crypto_class(*args, **kwargs)
 
         except (AttributeError, ModuleNotFoundError):
-            raise ImportError('%s is not part of our crypto platform!' % crypto_symbol)
+            raise ImportError(
+                '%s is not part of our crypto platform yet.'
+                % crypto_symbol.upper())
         else:
-            if not issubclass(crypto_class, BaseCrypto):
+            if not issubclass(crypto_class, AbstractBaseCrypto):
                 raise ImportError(
-                    "We currently don't have %s, but you are welcome to send in the request for it!" %
-                    crypto_class)
+                    "We currently don't have %s, please send in the request "
+                    "for it." % crypto_class)
 
         # return crypto class
         return crypto_class_instance
